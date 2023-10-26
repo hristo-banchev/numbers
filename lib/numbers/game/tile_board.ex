@@ -112,6 +112,14 @@ defmodule Numbers.Game.TileBoard do
   end
 
   @doc """
+  Checks whether a given tile is already on the given tile board.
+  """
+  @spec has_tile?(tile_board(), tile()) :: boolean()
+  def has_tile?(tile_board, tile) do
+    tile_board |> List.flatten() |> Enum.any?(&(&1 == tile))
+  end
+
+  @doc """
   Moves the tiles on the board to the end along the given direction.
 
   Two equal neighbouring tiles are replaced by a single tile holding their sum.

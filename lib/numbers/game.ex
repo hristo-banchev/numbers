@@ -156,24 +156,30 @@ defmodule Numbers.Game do
       {:error, :game_lost}
   """
   @spec make_a_move(GameBoard.t(), :up | :down | :left | :right) ::
-          {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()} | {:error, :game_lost}
+          {:ok, Ecto.Schema.t()}
+          | {:ok, Ecto.Schema.t(), :game_won}
+          | {:error, Ecto.Changeset.t() | :game_lost | :game_already_won}
   def make_a_move(%GameBoard{} = game_board, direction) when is_atom(direction) do
-    move_result =
-      game_board.tile_board
-      |> TileBoard.move(direction)
-      |> TileBoard.place_new_tile(Settings.get(:new_tile_value))
-
-    case move_result do
-      {:ok, tile_board} ->
-        attrs = %{
-          tile_board: tile_board,
-          move_count: game_board.move_count + 1
-        }
-
-        update_game_board(game_board, attrs)
+    with false <- TileBoard.has_tile?(game_board.tile_board, Settings.get(:win_condition)),
+         tile_board_after_move = TileBoard.move(game_board.tile_board, direction),
+         {:ok, updated_tile_board} <- TileBoard.place_new_tile(tile_board_after_move, Settings.get(:new_tile_value)),
+         has_won <- TileBoard.has_tile?(updated_tile_board, Settings.get(:win_condition)),
+         attrs = %{tile_board: updated_tile_board, move_count: game_board.move_count + 1},
+         {:ok, updated_game_board} <- update_game_board(game_board, attrs) do
+      if has_won do
+        {:ok, updated_game_board, :game_won}
+      else
+        {:ok, updated_game_board}
+      end
+    else
+      true ->
+        {:error, :game_already_won}
 
       {:error, :full_tile_board} ->
         {:error, :game_lost}
+
+      {:error, _} = error ->
+        error
     end
   end
 end

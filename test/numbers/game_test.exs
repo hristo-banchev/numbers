@@ -161,6 +161,27 @@ defmodule Numbers.GameTest do
       assert new_board.tile_board != tile_board
     end
 
+    test "make_a_move/2 wins the game when during the move 2048 is present in the tile board" do
+      tile_board = [
+        [1024, 1024, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: tile_board})
+
+      assert {:ok, won_game_board, :game_won} = Game.make_a_move(game_board, :left)
+
+      assert won_game_board.tile_board ==
+               [
+                 [2048, 2, 4, 1],
+                 [4, 2, 4, 2],
+                 [2, 4, 2, 4],
+                 [4, 2, 4, 2]
+               ]
+    end
+
     test "make_a_move/2 loses the game when no neighbouring tiles can be combined and the board is full" do
       full_tile_board = [
         [2, 4, 2, 4],
@@ -172,6 +193,19 @@ defmodule Numbers.GameTest do
       game_board = game_board_fixture(%{size: 4, tile_board: full_tile_board})
 
       assert {:error, :game_lost} = Game.make_a_move(game_board, :left)
+    end
+
+    test "make_a_move/2 can not be performed when the game has already been won" do
+      won_tile_board = [
+        [2048, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: won_tile_board})
+
+      assert {:error, :game_already_won} = Game.make_a_move(game_board, :left)
     end
   end
 end

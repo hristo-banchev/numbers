@@ -92,4 +92,14 @@ defmodule Numbers.Game.TileBoardTest do
                [4, 4, 8, 2]
              ]
   end
+
+  test "has_tile?/2 checks whether a given tile is already on the given tile board" do
+    tile_board = [
+      [nil, 2048],
+      [2, 4]
+    ]
+
+    assert TileBoard.has_tile?(tile_board, 2048)
+    refute TileBoard.has_tile?(tile_board, 1024)
+  end
 end
