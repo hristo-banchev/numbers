@@ -151,19 +151,29 @@ defmodule Numbers.Game do
 
       iex> make_a_move(game_board, :left)
       {:ok, %GameBoard{}}
+
+      iex> make_a_move(game_board, :up)
+      {:error, :game_lost}
   """
   @spec make_a_move(GameBoard.t(), :up | :down | :left | :right) ::
-          {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()} | {:error, :game_lost}
   def make_a_move(%GameBoard{} = game_board, direction) when is_atom(direction) do
-    tile_board = TileBoard.move(game_board.tile_board, direction)
+    move_result =
+      game_board.tile_board
+      |> TileBoard.move(direction)
+      |> TileBoard.place_new_tile(Settings.get(:new_tile_value))
 
-    # TODO: add a new tile at a random empty place
+    case move_result do
+      {:ok, tile_board} ->
+        attrs = %{
+          tile_board: tile_board,
+          move_count: game_board.move_count + 1
+        }
 
-    attrs = %{
-      tile_board: tile_board,
-      move_count: game_board.move_count + 1
-    }
+        update_game_board(game_board, attrs)
 
-    update_game_board(game_board, attrs)
+      {:error, :full_tile_board} ->
+        {:error, :game_lost}
+    end
   end
 end

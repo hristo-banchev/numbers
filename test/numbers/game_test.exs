@@ -113,14 +113,7 @@ defmodule Numbers.GameTest do
 
       assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :left)
       assert new_board.move_count == 1
-
-      assert new_board.tile_board ==
-               [
-                 [4, nil, nil, nil],
-                 [4, nil, nil, nil],
-                 [4, 4, nil, nil],
-                 [2, 4, 2, nil]
-               ]
+      assert new_board.tile_board != tile_board
     end
 
     test "make_a_move/2 follows the game logic along the right direction" do
@@ -135,14 +128,7 @@ defmodule Numbers.GameTest do
 
       assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :right)
       assert new_board.move_count == 1
-
-      assert new_board.tile_board ==
-               [
-                 [nil, nil, nil, 4],
-                 [nil, nil, nil, 4],
-                 [nil, nil, 4, 4],
-                 [nil, 2, 4, 2]
-               ]
+      assert new_board.tile_board != tile_board
     end
 
     test "make_a_move/2 follows the game logic along the up direction" do
@@ -157,14 +143,7 @@ defmodule Numbers.GameTest do
 
       assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :up)
       assert new_board.move_count == 1
-
-      assert new_board.tile_board ==
-               [
-                 [4, 4, 4, 2],
-                 [nil, 2, 8, nil],
-                 [nil, nil, nil, nil],
-                 [nil, nil, nil, nil]
-               ]
+      assert new_board.tile_board != tile_board
     end
 
     test "make_a_move/2 follows the game logic along the down direction" do
@@ -179,14 +158,20 @@ defmodule Numbers.GameTest do
 
       assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :down)
       assert new_board.move_count == 1
+      assert new_board.tile_board != tile_board
+    end
 
-      assert new_board.tile_board ==
-               [
-                 [nil, nil, nil, nil],
-                 [nil, nil, nil, nil],
-                 [nil, 2, 4, nil],
-                 [4, 4, 8, 2]
-               ]
+    test "make_a_move/2 loses the game when no neighbouring tiles can be combined and the board is full" do
+      full_tile_board = [
+        [2, 4, 2, 4],
+        [4, 2, 4, 2],
+        [2, 4, 2, 4],
+        [4, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: full_tile_board})
+
+      assert {:error, :game_lost} = Game.make_a_move(game_board, :left)
     end
   end
 end

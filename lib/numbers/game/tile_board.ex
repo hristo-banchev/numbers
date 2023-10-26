@@ -75,9 +75,40 @@ defmodule Numbers.Game.TileBoard do
     |> blank_tile_positions()
     |> Enum.shuffle()
     |> Enum.take(start_tiles)
-    |> Enum.reduce(tile_board, fn [row, col], board ->
-      put_in(board, [Access.at(row), Access.at(col)], start_tile_value)
+    |> Enum.reduce(tile_board, fn [row, col], board_acc ->
+      put_in(board_acc, [Access.at(row), Access.at(col)], start_tile_value)
     end)
+  end
+
+  @doc """
+  Places the given tile on the board if there is a blank space. Otherwise it
+  returns an error.
+
+  ## Examples
+
+      iex> place_new_tile([[nil, 2], [4, nil]], 2)
+      {:ok [[nil, 2], [4, 2]]}
+
+      iex> place_new_tile([[2, 2], [4, 4]], 2)
+      {:error, :full_tile_board}
+  """
+  @spec place_new_tile(tile_board(), tile()) :: {:ok, tile_board()} | {:error, :full_tile_board}
+  def place_new_tile(tile_board, tile) do
+    coordinates =
+      tile_board
+      |> blank_tile_positions()
+      |> Enum.shuffle()
+      |> List.first()
+
+    case coordinates do
+      [row, col] ->
+        updated_tile_board = put_in(tile_board, [Access.at(row), Access.at(col)], tile)
+
+        {:ok, updated_tile_board}
+
+      nil ->
+        {:error, :full_tile_board}
+    end
   end
 
   @doc """

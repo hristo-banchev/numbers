@@ -38,6 +38,20 @@ defmodule Numbers.Game.TileBoardTest do
     assert Enum.all?(non_blank_tiles, fn tile -> tile == start_tile_value end)
   end
 
+  test "place_new_tile/2 adds a new tile to the board" do
+    tile_board = [[nil, 2], [4, nil]]
+
+    {:ok, tile_board} = TileBoard.place_new_tile(tile_board, 2)
+
+    assert length(TileBoard.blank_tile_positions(tile_board)) == 1
+  end
+
+  test "place_new_tile/2 returns an error when the board is full" do
+    tile_board = [[1, 2], [3, 4]]
+
+    {:error, :full_tile_board} = TileBoard.place_new_tile(tile_board, 2)
+  end
+
   test "move/2 follows the game logic along each direction" do
     tile_board = [
       [2, nil, 2, nil],
