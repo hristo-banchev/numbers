@@ -8,6 +8,7 @@ defmodule Numbers.Game do
 
   alias Numbers.Game.GameBoard
   alias Numbers.Game.Settings
+  alias Numbers.Matrix
 
   @type blank_tile :: nil
   @type tile :: integer() | blank_tile()
@@ -190,6 +191,30 @@ defmodule Numbers.Game do
     end)
   end
 
+  @doc """
+  Moves the number tiles on the game board along the given direction, increments
+  the move count and stores the updated game board.
+
+  ## Examples
+
+      iex> make_a_move(game_board, :left)
+      {:ok, %GameBoard{}}
+  """
+  @spec make_a_move(GameBoard.t(), :up | :down | :left | :right) ::
+          {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
+  def make_a_move(%GameBoard{} = game_board, direction) when is_atom(direction) do
+    tile_board = execute_move(game_board.tile_board, direction)
+
+    # TODO: add a new tile at a random empty place
+
+    attrs = %{
+      tile_board: tile_board,
+      move_count: game_board.move_count + 1
+    }
+
+    update_game_board(game_board, attrs)
+  end
+
   ###########
   # Private #
   ###########
@@ -217,4 +242,50 @@ defmodule Numbers.Game do
       put_in(board, [Access.at(row), Access.at(col)], start_tile_value)
     end)
   end
+
+  defp execute_move(tile_board, :left) do
+    Enum.map(tile_board, &sum_neighbours/1)
+  end
+
+  defp execute_move(tile_board, :right) do
+    Enum.map(tile_board, fn row ->
+      row
+      |> Enum.reverse()
+      |> sum_neighbours()
+      |> Enum.reverse()
+    end)
+  end
+
+  defp execute_move(tile_board, :up) do
+    tile_board
+    |> Matrix.transpose()
+    |> Enum.map(&sum_neighbours/1)
+    |> Matrix.transpose()
+  end
+
+  defp execute_move(tile_board, :down) do
+    tile_board
+    |> Matrix.transpose()
+    |> Enum.map(fn row ->
+      row
+      |> Enum.reverse()
+      |> sum_neighbours()
+      |> Enum.reverse()
+    end)
+    |> Matrix.transpose()
+  end
+
+  defp sum_neighbours(row) do
+    {blank_tiles, compact_row} = Enum.split_with(row, &is_nil/1)
+
+    sum_neighbours(compact_row, [], blank_tiles)
+  end
+
+  defp sum_neighbours([], result, blank_tiles), do: Enum.reverse(result, blank_tiles)
+
+  defp sum_neighbours([a, b | rest], result, blank_tiles) when a == b do
+    sum_neighbours(rest, [a + b | result], [nil | blank_tiles])
+  end
+
+  defp sum_neighbours([a | rest], result, blank_tiles), do: sum_neighbours(rest, [a | result], blank_tiles)
 end

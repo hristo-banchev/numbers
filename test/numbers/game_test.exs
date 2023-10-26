@@ -122,5 +122,93 @@ defmodule Numbers.GameTest do
 
       assert Game.blank_tile_positions(tile_board) == [[0, 1], [1, 0], [2, 2]]
     end
+
+    test "make_a_move/2 follows the game logic along the left direction" do
+      tile_board = [
+        [2, nil, 2, nil],
+        [nil, 2, 2, nil],
+        [2, 2, 4, nil],
+        [nil, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: tile_board, move_count: 0})
+
+      assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :left)
+      assert new_board.move_count == 1
+
+      assert new_board.tile_board ==
+               [
+                 [4, nil, nil, nil],
+                 [4, nil, nil, nil],
+                 [4, 4, nil, nil],
+                 [2, 4, 2, nil]
+               ]
+    end
+
+    test "make_a_move/2 follows the game logic along the right direction" do
+      tile_board = [
+        [2, nil, 2, nil],
+        [nil, 2, 2, nil],
+        [2, 2, 4, nil],
+        [nil, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: tile_board, move_count: 0})
+
+      assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :right)
+      assert new_board.move_count == 1
+
+      assert new_board.tile_board ==
+               [
+                 [nil, nil, nil, 4],
+                 [nil, nil, nil, 4],
+                 [nil, nil, 4, 4],
+                 [nil, 2, 4, 2]
+               ]
+    end
+
+    test "make_a_move/2 follows the game logic along the up direction" do
+      tile_board = [
+        [2, nil, 2, nil],
+        [nil, 2, 2, nil],
+        [2, 2, 4, nil],
+        [nil, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: tile_board, move_count: 0})
+
+      assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :up)
+      assert new_board.move_count == 1
+
+      assert new_board.tile_board ==
+               [
+                 [4, 4, 4, 2],
+                 [nil, 2, 8, nil],
+                 [nil, nil, nil, nil],
+                 [nil, nil, nil, nil]
+               ]
+    end
+
+    test "make_a_move/2 follows the game logic along the down direction" do
+      tile_board = [
+        [2, nil, 2, nil],
+        [nil, 2, 2, nil],
+        [2, 2, 4, nil],
+        [nil, 2, 4, 2]
+      ]
+
+      game_board = game_board_fixture(%{size: 4, tile_board: tile_board, move_count: 0})
+
+      assert {:ok, %GameBoard{} = new_board} = Game.make_a_move(game_board, :down)
+      assert new_board.move_count == 1
+
+      assert new_board.tile_board ==
+               [
+                 [nil, nil, nil, nil],
+                 [nil, nil, nil, nil],
+                 [nil, 2, 4, nil],
+                 [4, 4, 8, 2]
+               ]
+    end
   end
 end
