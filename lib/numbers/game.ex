@@ -8,11 +8,7 @@ defmodule Numbers.Game do
 
   alias Numbers.Game.GameBoard
   alias Numbers.Game.Settings
-  alias Numbers.Matrix
-
-  @type blank_tile :: nil
-  @type tile :: integer() | blank_tile()
-  @type tile_board :: list(list(tile()))
+  alias Numbers.Game.TileBoard
 
   @doc """
   Returns the list of game_boards.
@@ -135,8 +131,8 @@ defmodule Numbers.Game do
   def start_new_game(user_uuid, size) when is_binary(user_uuid) and is_integer(size) do
     tile_board =
       size
-      |> blank_tile_board()
-      |> place_initial_tiles(Settings.get(:start_tiles), Settings.get(:start_tile_value))
+      |> TileBoard.blank_tile_board()
+      |> TileBoard.place_initial_tiles(Settings.get(:start_tiles), Settings.get(:start_tile_value))
 
     attrs = %{
       user_uuid: user_uuid,
@@ -145,50 +141,6 @@ defmodule Numbers.Game do
     }
 
     create_game_board(attrs)
-  end
-
-  @doc """
-  Returns a blank tile board (a square matrix) with the given size as dimensions.
-
-  ## Examples
-
-      iex> Numbers.Game.blank_tile_board(4)
-      [
-        [nil, nil, nil, nil],
-        [nil, nil, nil, nil],
-        [nil, nil, nil, nil],
-        [nil, nil, nil, nil]
-      ]
-
-  """
-  @spec blank_tile_board(integer()) :: tile_board()
-  def blank_tile_board(size) when is_integer(size) and size > 0 do
-    range = 1..size
-    row = Enum.map(range, fn _ -> nil end)
-    Enum.map(range, fn _ -> row end)
-  end
-
-  @doc """
-  Retuns the positions of all blank tiles on the given blank board in the format
-  [row, column].
-
-  ## Examples
-
-      iex> tile_board = [[2, nil, 4], [nil, 8, 4], [2, 2, nil]]
-      iex> Numbers.Game.blank_tile_positions(tile_board)
-      [[0, 1], [1, 0], [2, 2]]
-
-  """
-  @spec blank_tile_positions(tile_board()) :: list(list(integer()))
-  def blank_tile_positions(tile_board) when is_list(tile_board) do
-    tile_board
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {row, row_index} ->
-      row
-      |> Enum.with_index()
-      |> Enum.filter(fn {value, _} -> is_nil(value) end)
-      |> Enum.map(fn {_, column_index} -> [row_index, column_index] end)
-    end)
   end
 
   @doc """
@@ -203,7 +155,7 @@ defmodule Numbers.Game do
   @spec make_a_move(GameBoard.t(), :up | :down | :left | :right) ::
           {:ok, Ecto.Schema.t()} | {:error, Ecto.Changeset.t()}
   def make_a_move(%GameBoard{} = game_board, direction) when is_atom(direction) do
-    tile_board = execute_move(game_board.tile_board, direction)
+    tile_board = TileBoard.move(game_board.tile_board, direction)
 
     # TODO: add a new tile at a random empty place
 
@@ -214,78 +166,4 @@ defmodule Numbers.Game do
 
     update_game_board(game_board, attrs)
   end
-
-  ###########
-  # Private #
-  ###########
-
-  # Places new tiles on a tile board using the game settings.
-  #
-  # ## Examples
-  #
-  #     iex> blank_board = Numbers.Game.blank_tile_board(4)
-  #     iex> Numbers.Game.place_initial_tiles(blank_board, 2, 2)
-  #     [
-  #       [nil, nil, nil, nil],
-  #       [nil, nil, 2, nil],
-  #       [2, nil, nil, nil],
-  #       [nil, nil, nil, nil]
-  #     ]
-  #
-  @spec place_initial_tiles(tile_board(), integer(), integer()) :: tile_board()
-  defp place_initial_tiles(tile_board, start_tiles, start_tile_value) do
-    tile_board
-    |> blank_tile_positions()
-    |> Enum.shuffle()
-    |> Enum.take(start_tiles)
-    |> Enum.reduce(tile_board, fn [row, col], board ->
-      put_in(board, [Access.at(row), Access.at(col)], start_tile_value)
-    end)
-  end
-
-  defp execute_move(tile_board, :left) do
-    Enum.map(tile_board, &sum_neighbours/1)
-  end
-
-  defp execute_move(tile_board, :right) do
-    Enum.map(tile_board, fn row ->
-      row
-      |> Enum.reverse()
-      |> sum_neighbours()
-      |> Enum.reverse()
-    end)
-  end
-
-  defp execute_move(tile_board, :up) do
-    tile_board
-    |> Matrix.transpose()
-    |> Enum.map(&sum_neighbours/1)
-    |> Matrix.transpose()
-  end
-
-  defp execute_move(tile_board, :down) do
-    tile_board
-    |> Matrix.transpose()
-    |> Enum.map(fn row ->
-      row
-      |> Enum.reverse()
-      |> sum_neighbours()
-      |> Enum.reverse()
-    end)
-    |> Matrix.transpose()
-  end
-
-  defp sum_neighbours(row) do
-    {blank_tiles, compact_row} = Enum.split_with(row, &is_nil/1)
-
-    sum_neighbours(compact_row, [], blank_tiles)
-  end
-
-  defp sum_neighbours([], result, blank_tiles), do: Enum.reverse(result, blank_tiles)
-
-  defp sum_neighbours([a, b | rest], result, blank_tiles) when a == b do
-    sum_neighbours(rest, [a + b | result], [nil | blank_tiles])
-  end
-
-  defp sum_neighbours([a | rest], result, blank_tiles), do: sum_neighbours(rest, [a | result], blank_tiles)
 end

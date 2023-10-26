@@ -101,28 +101,6 @@ defmodule Numbers.GameTest do
       assert Enum.all?(non_blank_tiles, fn tile -> tile == Game.Settings.get(:start_tile_value) end)
     end
 
-    test "blank_tile_board/1 returns a square board in which all tiles are blank" do
-      assert Game.blank_tile_board(6) ==
-               [
-                 [nil, nil, nil, nil, nil, nil],
-                 [nil, nil, nil, nil, nil, nil],
-                 [nil, nil, nil, nil, nil, nil],
-                 [nil, nil, nil, nil, nil, nil],
-                 [nil, nil, nil, nil, nil, nil],
-                 [nil, nil, nil, nil, nil, nil]
-               ]
-    end
-
-    test "blank_tile_positions/1 returns" do
-      tile_board = [
-        [2, nil, 4],
-        [nil, 8, 4],
-        [2, 2, nil]
-      ]
-
-      assert Game.blank_tile_positions(tile_board) == [[0, 1], [1, 0], [2, 2]]
-    end
-
     test "make_a_move/2 follows the game logic along the left direction" do
       tile_board = [
         [2, nil, 2, nil],
