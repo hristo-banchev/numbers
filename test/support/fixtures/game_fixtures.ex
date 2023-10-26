@@ -12,7 +12,7 @@ defmodule Numbers.GameFixtures do
       attrs
       |> Enum.into(%{
         move_count: 42,
-        size: 42,
+        size: 6,
         tile_board: [[1, 2], [3, 4]],
         user_uuid: "7488a646-e31f-11e4-aace-600308960662"
       })
