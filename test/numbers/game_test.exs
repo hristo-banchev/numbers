@@ -15,9 +15,21 @@ defmodule Numbers.GameTest do
       assert Game.list_game_boards() == [game_board]
     end
 
-    test "get_game_board!/1 returns the game_board with given id" do
+    test "get_game_board!/2 returns the game_board with given id" do
       game_board = game_board_fixture()
-      assert Game.get_game_board!(game_board.id) == game_board
+      assert Game.get_game_board!(game_board.user_uuid, game_board.id) == game_board
+    end
+
+    test "get_last_game_board/1 returns the game_board with given id" do
+      user_uuid = Ecto.UUID.generate()
+
+      assert Game.get_last_game_board(user_uuid) == nil
+
+      game_board_fixture(user_uuid: user_uuid)
+      game_board_fixture(user_uuid: user_uuid)
+      last_game_board = game_board_fixture(user_uuid: user_uuid)
+
+      assert Game.get_last_game_board(user_uuid) == last_game_board
     end
 
     test "create_game_board/1 with valid data creates a game_board" do
@@ -59,13 +71,13 @@ defmodule Numbers.GameTest do
     test "update_game_board/2 with invalid data returns error changeset" do
       game_board = game_board_fixture()
       assert {:error, %Ecto.Changeset{}} = Game.update_game_board(game_board, @invalid_attrs)
-      assert game_board == Game.get_game_board!(game_board.id)
+      assert game_board == Game.get_game_board!(game_board.user_uuid, game_board.id)
     end
 
     test "delete_game_board/1 deletes the game_board" do
       game_board = game_board_fixture()
       assert {:ok, %GameBoard{}} = Game.delete_game_board(game_board)
-      assert_raise Ecto.NoResultsError, fn -> Game.get_game_board!(game_board.id) end
+      assert_raise Ecto.NoResultsError, fn -> Game.get_game_board!(game_board.user_uuid, game_board.id) end
     end
 
     test "change_game_board/1 returns a game_board changeset" do

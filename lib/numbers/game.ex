@@ -33,14 +33,33 @@ defmodule Numbers.Game do
 
   ## Examples
 
-      iex> get_game_board!(123)
+      iex> get_game_board!("7488a646-e31f-11e4-aace-600308960662", 123)
       %GameBoard{}
 
-      iex> get_game_board!(456)
+      iex> get_game_board!("7488a646-e31f-11e4-aace-600308960662", 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_game_board!(id), do: Repo.get!(GameBoard, id)
+  @spec get_game_board!(Ecto.UUID.t(), integer()) :: GameBoard.t() | term()
+  def get_game_board!(user_uuid, id), do: Repo.get_by!(GameBoard, id: id, user_uuid: user_uuid)
+
+  @doc """
+  Returns the last game board that belongs to the given user UUID.
+
+  Returns `nil` if there are no boards related to the user UUID.
+
+  ## Examples
+
+      iex> get_last_game_board("7488a646-e31f-11e4-aace-600308960662")
+      %GameBoard{}
+  """
+  @spec get_last_game_board(Ecto.UUID.t()) :: GameBoard.t() | term() | nil
+  def get_last_game_board(user_uuid) do
+    GameBoard
+    |> where(user_uuid: ^user_uuid)
+    |> last(:id)
+    |> Repo.one()
+  end
 
   @doc """
   Creates a game_board.
