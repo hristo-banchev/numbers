@@ -1,0 +1,22 @@
+<button id="new_game" phx-click="new_board" class="p-6 bg-slate-300 border-2 text-2xl">New Game</button>
+
+<div
+  id="game_board"
+  phx-window-keyup="control_board"
+  class="grid grid-cols-6 place-content-center text-center border-2 border-slate-800"
+>
+  <%= for row <- @game_board.tile_board do %>
+    <%= for tile <- row do %>
+      <.render_tile tile={tile} />
+    <% end %>
+  <% end %>
+</div>
+<div class="p-4 text-center text-xl">
+  Moves: <%= @game_board.move_count %>
+</div>
+<div :if={@has_won} class="text-center text-5xl">
+  You won!
+</div>
+<div :if={@has_lost} class="text-center text-5xl">
+  Game over!
+</div>

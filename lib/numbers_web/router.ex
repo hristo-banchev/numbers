@@ -8,6 +8,7 @@ defmodule NumbersWeb.Router do
     plug :put_root_layout, html: {NumbersWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_user_uuid
   end
 
   pipeline :api do
@@ -15,9 +16,9 @@ defmodule NumbersWeb.Router do
   end
 
   scope "/", NumbersWeb do
-    pipe_through :browser
+    pipe_through [:browser]
 
-    get "/", PageController, :home
+    live "/", GameLive
   end
 
   # Other scopes may use custom stacks.
@@ -38,6 +39,18 @@ defmodule NumbersWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: NumbersWeb.Telemetry
+    end
+  end
+
+  defp fetch_user_uuid(conn, _) do
+    if user_uuid = get_session(conn, :user_uuid) do
+      assign(conn, :user_uuid, user_uuid)
+    else
+      new_uuid = Ecto.UUID.generate()
+
+      conn
+      |> assign(:user_uuid, new_uuid)
+      |> put_session(:user_uuid, new_uuid)
     end
   end
 end
