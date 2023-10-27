@@ -56,4 +56,21 @@ defmodule Numbers.GameFixtures do
     })
     |> game_board_fixture()
   end
+
+  def game_board_with_obstacles_fixture(attrs \\ %{}) do
+    attrs
+    |> Enum.into(%{
+      move_count: 23,
+      size: 6,
+      tile_board: [
+        [nil, nil, nil, 8, nil, nil],
+        [nil, nil, nil, 8, nil, nil],
+        [2, nil, 2, 0, 4, 4],
+        [nil, 0, 0, 2, nil, nil],
+        [nil, 2, nil, 4, nil, nil],
+        [nil, nil, nil, 8, nil, nil]
+      ]
+    })
+    |> game_board_fixture()
+  end
 end

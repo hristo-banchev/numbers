@@ -128,10 +128,11 @@ defmodule Numbers.Game do
   game board is ready for the player to make their first move.
   """
   @spec start_new_game(Ecto.UUID.t(), integer()) :: {:ok, GameBoard.t()} | {:error, GameBoard.Changeset.t()}
-  def start_new_game(user_uuid, size) when is_binary(user_uuid) and is_integer(size) do
+  def start_new_game(user_uuid, size, obstacle_count \\ 0) when is_binary(user_uuid) and is_integer(size) do
     tile_board =
       size
       |> TileBoard.blank_tile_board()
+      |> TileBoard.place_initial_tiles(obstacle_count, Settings.get(:obstacle_tile_value))
       |> TileBoard.place_initial_tiles(Settings.get(:start_tiles), Settings.get(:start_tile_value))
 
     attrs = %{

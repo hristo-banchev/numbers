@@ -2,9 +2,11 @@ defmodule NumbersWeb.GameLive do
   use NumbersWeb, :live_view
 
   alias Numbers.Game
+  alias Numbers.Game.Settings
 
   @doc """
-  Renders a button for changing the size of the game board.
+  Renders a button for changing the size of the game board when starting a new
+  game.
   """
   def size_button(assigns) do
     ~H"""
@@ -21,12 +23,40 @@ defmodule NumbersWeb.GameLive do
   end
 
   @doc """
+  Renders a button for changing the number of obstacles on the board when
+  starting a new game.
+  """
+  def obstacle_button(assigns) do
+    ~H"""
+    <button
+      id={"obstacles_#{@obstacles}"}
+      value={@obstacles}
+      phx-click="select_obstacle_count"
+      class="p-4 bg-slate-300 border-2 disabled:opacity-50"
+      disabled={@disabled}
+    >
+      <%= @obstacles %>
+    </button>
+    """
+  end
+
+  @doc """
   Renders a square tile with its value positioned in the center of the square.
   """
-  def tile(assigns) do
+  def regular_tile(assigns) do
     ~H"""
-    <div class="aspect-square flex items-center justify-center bg-pink-400 border-2 border-pink-800 text-pink-800 text-5xl font-bold">
+    <div class="regular-tile aspect-square flex items-center justify-center bg-lime-300 border-4 border-lime-800 text-lime-800 text-5xl font-bold">
       <%= @tile %>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders an obstacle square tile.
+  """
+  def obstacle_tile(assigns) do
+    ~H"""
+    <div class="obstacle-tile aspect-square flex items-center justify-center bg-red-500 border-4 border-red-800 text-red-800 text-5xl font-bold">
     </div>
     """
   end
@@ -42,6 +72,7 @@ defmodule NumbersWeb.GameLive do
       |> assign(:user_uuid, user_uuid)
       |> assign(:game_board, game_board)
       |> assign(:selected_size, game_board.size)
+      |> assign(:obstacle_count, Settings.get(:default_obstacle_count))
       |> assign(:has_won, false)
       |> assign(:has_lost, false)
 
@@ -51,7 +82,11 @@ defmodule NumbersWeb.GameLive do
   @impl true
   def handle_event("new_board", _params, socket) do
     {:ok, %Game.GameBoard{} = new_game_board} =
-      Game.start_new_game(socket.assigns.user_uuid, socket.assigns.selected_size)
+      Game.start_new_game(
+        socket.assigns.user_uuid,
+        socket.assigns.selected_size,
+        socket.assigns.obstacle_count
+      )
 
     {:noreply, assign(socket, :game_board, new_game_board)}
   end
@@ -59,6 +94,11 @@ defmodule NumbersWeb.GameLive do
   @impl true
   def handle_event("select_size", %{"value" => new_size}, socket) do
     {:noreply, assign(socket, :selected_size, String.to_integer(new_size))}
+  end
+
+  @impl true
+  def handle_event("select_obstacle_count", %{"value" => new_obstacle_count}, socket) do
+    {:noreply, assign(socket, :obstacle_count, String.to_integer(new_obstacle_count))}
   end
 
   @impl true
@@ -97,7 +137,7 @@ defmodule NumbersWeb.GameLive do
 
       nil ->
         {:ok, %Game.GameBoard{} = new_game_board} =
-          Game.start_new_game(user_uuid, Numbers.Game.Settings.get(:default_size))
+          Game.start_new_game(user_uuid, Settings.get(:default_size), Settings.get(:default_obstacle_count))
 
         new_game_board
     end

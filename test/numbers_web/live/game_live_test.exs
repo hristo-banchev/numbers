@@ -23,6 +23,12 @@ defmodule NumbersWeb.GameLiveTest do
     test "can start a new game with a different board size", %{conn: conn} do
       {:ok, game_live, _html} = live(conn, ~p"/")
 
+      count_tiles = fn game_live ->
+        ~r/regular-tile/
+        |> Regex.scan(game_live |> element("#game_board") |> render())
+        |> Enum.count()
+      end
+
       refute game_live |> element("#size_4") |> render() =~ "disabled=\"disabled\""
       assert game_live |> element("#size_6") |> render() =~ "disabled=\"disabled\""
 
@@ -30,6 +36,7 @@ defmodule NumbersWeb.GameLiveTest do
 
       refute game_board_html =~ "grid-cols-4"
       assert game_board_html =~ "grid-cols-6"
+      assert count_tiles.(game_live) == 36
 
       game_live |> element("#size_4") |> render_click()
       game_live |> element("#new_game") |> render_click()
@@ -41,6 +48,28 @@ defmodule NumbersWeb.GameLiveTest do
 
       assert game_board_html =~ "grid-cols-4"
       refute game_board_html =~ "grid-cols-6"
+      assert count_tiles.(game_live) == 16
+    end
+
+    test "can start a new game with a different number of obstacles", %{conn: conn} do
+      {:ok, game_live, _html} = live(conn, ~p"/")
+
+      count_obstacles = fn game_live ->
+        ~r/obstacle-tile/
+        |> Regex.scan(game_live |> element("#game_board") |> render())
+        |> Enum.count()
+      end
+
+      assert game_live |> element("#obstacles_0") |> render() =~ "disabled=\"disabled\""
+      refute game_live |> element("#obstacles_2") |> render() =~ "disabled=\"disabled\""
+      assert count_obstacles.(game_live) == 0
+
+      game_live |> element("#obstacles_2") |> render_click()
+      game_live |> element("#new_game") |> render_click()
+
+      refute game_live |> element("#obstacles_0") |> render() =~ "disabled=\"disabled\""
+      assert game_live |> element("#obstacles_2") |> render() =~ "disabled=\"disabled\""
+      assert count_obstacles.(game_live) == 2
     end
 
     test "displays a message when the game is over", %{conn: conn} do

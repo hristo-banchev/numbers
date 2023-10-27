@@ -93,6 +93,57 @@ defmodule Numbers.Game.TileBoardTest do
              ]
   end
 
+  test "move/2 also works around obstacles" do
+    tile_board_with_obstacles = [
+      [nil, 2, nil, 8, nil, nil],
+      [nil, nil, nil, 8, nil, nil],
+      [2, nil, 2, 0, 4, 4],
+      [nil, 0, 0, 2, nil, 2],
+      [nil, 2, nil, 4, nil, nil],
+      [nil, nil, nil, 8, nil, nil]
+    ]
+
+    assert TileBoard.move(tile_board_with_obstacles, :left) ==
+             [
+               [2, 8, nil, nil, nil, nil],
+               [8, nil, nil, nil, nil, nil],
+               [4, nil, nil, 0, 8, nil],
+               [nil, 0, 0, 4, nil, nil],
+               [2, 4, nil, nil, nil, nil],
+               [8, nil, nil, nil, nil, nil]
+             ]
+
+    assert TileBoard.move(tile_board_with_obstacles, :right) ==
+             [
+               [nil, nil, nil, nil, 2, 8],
+               [nil, nil, nil, nil, nil, 8],
+               [nil, nil, 4, 0, nil, 8],
+               [nil, 0, 0, nil, nil, 4],
+               [nil, nil, nil, nil, 2, 4],
+               [nil, nil, nil, nil, nil, 8]
+             ]
+
+    assert TileBoard.move(tile_board_with_obstacles, :up) ==
+             [
+               [2, 2, 2, 16, 4, 4],
+               [nil, nil, nil, nil, nil, 2],
+               [nil, nil, nil, 0, nil, nil],
+               [nil, 0, 0, 2, nil, nil],
+               [nil, 2, nil, 4, nil, nil],
+               [nil, nil, nil, 8, nil, nil]
+             ]
+
+    assert TileBoard.move(tile_board_with_obstacles, :down) ==
+             [
+               [nil, nil, nil, nil, nil, nil],
+               [nil, nil, nil, 16, nil, nil],
+               [nil, 2, 2, 0, nil, nil],
+               [nil, 0, 0, 2, nil, nil],
+               [nil, nil, nil, 4, nil, 4],
+               [2, 2, nil, 8, 4, 2]
+             ]
+  end
+
   test "has_tile?/2 checks whether a given tile is already on the given tile board" do
     tile_board = [
       [nil, 2048],

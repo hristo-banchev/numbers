@@ -85,11 +85,11 @@ defmodule Numbers.GameTest do
       assert %Ecto.Changeset{} = Game.change_game_board(game_board)
     end
 
-    test "start_new_game/2 creates a new game board with initial tiles" do
+    test "start_new_game/3 creates a new game board with initial tiles" do
       user_uuid = "7488a646-e31f-11e4-aace-600308960668"
       size = 4
 
-      assert {:ok, %GameBoard{} = game_board} = Game.start_new_game(user_uuid, size)
+      assert {:ok, %GameBoard{} = game_board} = Game.start_new_game(user_uuid, size, 0)
 
       assert game_board.move_count == 0
       assert game_board.size == 4
@@ -97,6 +97,27 @@ defmodule Numbers.GameTest do
 
       non_blank_tiles = Enum.flat_map(game_board.tile_board, fn row -> Enum.reject(row, &is_nil/1) end)
 
+      assert length(non_blank_tiles) == Game.Settings.get(:start_tiles)
+      assert Enum.all?(non_blank_tiles, fn tile -> tile == Game.Settings.get(:start_tile_value) end)
+    end
+
+    test "start_new_game/3 creates a new game and places obstacles" do
+      user_uuid = "7488a646-e31f-11e4-aace-600308960668"
+      size = 4
+      obstacle_count = 3
+
+      assert {:ok, %GameBoard{} = game_board} = Game.start_new_game(user_uuid, size, obstacle_count)
+
+      assert game_board.move_count == 0
+      assert game_board.size == 4
+      assert game_board.user_uuid == "7488a646-e31f-11e4-aace-600308960668"
+
+      {obstacle_tiles, non_blank_tiles} =
+        game_board.tile_board
+        |> Enum.flat_map(fn row -> Enum.reject(row, &is_nil/1) end)
+        |> Enum.split_with(fn tile -> tile == Game.Settings.get(:obstacle_tile_value) end)
+
+      assert length(obstacle_tiles) == obstacle_count
       assert length(non_blank_tiles) == Game.Settings.get(:start_tiles)
       assert Enum.all?(non_blank_tiles, fn tile -> tile == Game.Settings.get(:start_tile_value) end)
     end

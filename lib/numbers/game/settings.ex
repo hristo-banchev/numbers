@@ -12,7 +12,9 @@ defmodule Numbers.Game.Settings do
     win_condition: 2048,
     start_tiles: 1,
     start_tile_value: 2,
-    new_tile_value: 1
+    new_tile_value: 1,
+    default_obstacle_count: 0,
+    obstacle_tile_value: 0
   }
 
   def get(setting_key) when is_atom(setting_key), do: @settings[setting_key]

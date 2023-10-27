@@ -3,6 +3,8 @@ defmodule Numbers.Game.TileBoard do
   TODO:
   """
 
+  require IEx
+  alias Numbers.Game.Settings
   alias Numbers.Matrix
 
   @type blank_tile :: nil
@@ -137,14 +139,14 @@ defmodule Numbers.Game.TileBoard do
   def move(tile_board, direction)
 
   def move(tile_board, :left) do
-    Enum.map(tile_board, &sum_neighbours/1)
+    Enum.map(tile_board, &process_row/1)
   end
 
   def move(tile_board, :right) do
     Enum.map(tile_board, fn row ->
       row
       |> Enum.reverse()
-      |> sum_neighbours()
+      |> process_row()
       |> Enum.reverse()
     end)
   end
@@ -152,7 +154,7 @@ defmodule Numbers.Game.TileBoard do
   def move(tile_board, :up) do
     tile_board
     |> Matrix.transpose()
-    |> Enum.map(&sum_neighbours/1)
+    |> Enum.map(&process_row/1)
     |> Matrix.transpose()
   end
 
@@ -162,7 +164,7 @@ defmodule Numbers.Game.TileBoard do
     |> Enum.map(fn row ->
       row
       |> Enum.reverse()
-      |> sum_neighbours()
+      |> process_row()
       |> Enum.reverse()
     end)
     |> Matrix.transpose()
@@ -171,6 +173,22 @@ defmodule Numbers.Game.TileBoard do
   ###########
   # Private #
   ###########
+
+  defp process_row(row) do
+    row
+    |> Enum.chunk_by(fn tile -> tile == Settings.get(:obstacle_tile_value) end)
+    |> Enum.map(&process_tile_chunk/1)
+    |> Enum.concat()
+  end
+
+  defp process_tile_chunk(chunk) do
+    # Taking into account that obstacles may be neighbours.
+    if Enum.all?(chunk, fn tile -> tile == Settings.get(:obstacle_tile_value) end) do
+      chunk
+    else
+      sum_neighbours(chunk)
+    end
+  end
 
   defp sum_neighbours(row) do
     {blank_tiles, compact_row} = Enum.split_with(row, &is_nil/1)
