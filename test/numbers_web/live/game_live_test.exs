@@ -1,4 +1,5 @@
 defmodule NumbersWeb.GameLiveTest do
+  require IEx
   use NumbersWeb.ConnCase
 
   import Phoenix.LiveViewTest
@@ -17,6 +18,29 @@ defmodule NumbersWeb.GameLiveTest do
       assert make_a_move(game_live, :right) =~ "Moves: 1"
 
       assert game_live |> element("#new_game") |> render_click() =~ "Moves: 0"
+    end
+
+    test "can start a new game with a different board size", %{conn: conn} do
+      {:ok, game_live, _html} = live(conn, ~p"/")
+
+      refute game_live |> element("#size_4") |> render() =~ "disabled=\"disabled\""
+      assert game_live |> element("#size_6") |> render() =~ "disabled=\"disabled\""
+
+      game_board_html = game_live |> element("#game_board") |> render()
+
+      refute game_board_html =~ "grid-cols-4"
+      assert game_board_html =~ "grid-cols-6"
+
+      game_live |> element("#size_4") |> render_click()
+      game_live |> element("#new_game") |> render_click()
+
+      assert game_live |> element("#size_4") |> render() =~ "disabled=\"disabled\""
+      refute game_live |> element("#size_6") |> render() =~ "disabled=\"disabled\""
+
+      game_board_html = game_live |> element("#game_board") |> render()
+
+      assert game_board_html =~ "grid-cols-4"
+      refute game_board_html =~ "grid-cols-6"
     end
 
     test "displays a message when the game is over", %{conn: conn} do

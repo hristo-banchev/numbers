@@ -1,14 +1,19 @@
-<button id="new_game" phx-click="new_board" class="p-6 bg-slate-300 border-2 text-2xl">New Game</button>
-
-<div
-  id="game_board"
-  phx-window-keyup="control_board"
-  class="grid grid-cols-6 place-content-center text-center border-2 border-slate-800"
->
+<div class="flex place-content-between">
+  <button id="new_game" phx-click="new_board" class="p-4 bg-slate-300 border-2 text-2xl">New Game</button>
+  <div class="text-2xl">
+    <span>Size: </span>
+    <.size_button size={4} disabled={@selected_size == 4} />
+    <.size_button size={5} disabled={@selected_size == 5} />
+    <.size_button size={6} disabled={@selected_size == 6} />
+    <.size_button size={7} disabled={@selected_size == 7} />
+    <.size_button size={8} disabled={@selected_size == 8} />
+  </div>
+</div>
+<div id="game_board" phx-window-keyup="control_board" class="place-content-center text-center border-2 border-pink-800">
   <%= for row <- @game_board.tile_board do %>
-    <%= for tile <- row do %>
-      <.render_tile tile={tile} />
-    <% end %>
+    <div class={"grid grid-cols-#{length(row)}"}>
+      <.tile :for={tile <- row} tile={tile} />
+    </div>
   <% end %>
 </div>
 <div class="p-4 text-center text-xl">

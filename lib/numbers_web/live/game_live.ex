@@ -4,11 +4,28 @@ defmodule NumbersWeb.GameLive do
   alias Numbers.Game
 
   @doc """
+  Renders a button for changing the size of the game board.
+  """
+  def size_button(assigns) do
+    ~H"""
+    <button
+      id={"size_#{@size}"}
+      value={@size}
+      phx-click="select_size"
+      class="p-4 bg-slate-300 border-2 disabled:opacity-50"
+      disabled={@disabled}
+    >
+      <%= @size %>x<%= @size %>
+    </button>
+    """
+  end
+
+  @doc """
   Renders a square tile with its value positioned in the center of the square.
   """
-  def render_tile(assigns) do
+  def tile(assigns) do
     ~H"""
-    <div class="aspect-square flex items-center justify-center bg-pink-400 border-2 border-slate-800 text-white text-5xl font-bold">
+    <div class="aspect-square flex items-center justify-center bg-pink-400 border-2 border-pink-800 text-pink-800 text-5xl font-bold">
       <%= @tile %>
     </div>
     """
@@ -37,6 +54,11 @@ defmodule NumbersWeb.GameLive do
       Game.start_new_game(socket.assigns.user_uuid, socket.assigns.selected_size)
 
     {:noreply, assign(socket, :game_board, new_game_board)}
+  end
+
+  @impl true
+  def handle_event("select_size", %{"value" => new_size}, socket) do
+    {:noreply, assign(socket, :selected_size, String.to_integer(new_size))}
   end
 
   @impl true
